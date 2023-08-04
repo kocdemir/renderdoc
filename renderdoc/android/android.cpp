@@ -1094,11 +1094,12 @@ struct AndroidController : public IDeviceProtocolHandler
       // launch the last ABI, as the 64-bit version where possible, or 32-bit version where not.
       // Captures are portable across bitness and in some cases a 64-bit capture can't replay on a
       // 32-bit remote server.
+      // -W: Wait for launch to complete.
       Android::adbExecCommand(
-          deviceID, "shell am start -n " + package + "/.Loader -e renderdoccmd remoteserver");
+          deviceID, "shell am start -W -n " + package + "/.Loader -e renderdoccmd remoteserver");
     });
 
-    // allow the package to start and begin listening before we return
+    // allow the package to begin listening before we return
     Threading::Sleep(8000);
 
     return result;

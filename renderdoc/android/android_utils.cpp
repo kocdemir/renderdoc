@@ -126,9 +126,29 @@ rdcstr GetPlainABIName(ABI abi)
 
 rdcarray<ABI> GetSupportedABIs(const rdcstr &deviceID)
 {
+  //TODO: do we need to order similar to the one below?
+  // Read 'abilist' property of the device to get supported ABIs
+  rdcstr adbAbiList =
+      adbExecCommand(deviceID, "shell getprop ro.product.cpu.abilist").strStdout.trimmed();
+  rdcarray<rdcstr> adbAbis;
+  split(adbAbiList, adbAbis, ',');
+  if(adbAbis.size())
+  {
+    rdcarray<ABI> ret;
+    ret.reserve(adbAbis.size());
+    for(rdcstr &adbAbi : adbAbis)
+    {
+      ABI abi = GetABI(adbAbi);
+      if(abi != ABI::unknown)
+        ret.push_back(abi);
+    }
+    return ret;
+  }
+
+  // Fallback to 'abi' path for old devices which won't provide 'apilist' property
   rdcstr adbAbi = adbExecCommand(deviceID, "shell getprop ro.product.cpu.abi").strStdout.trimmed();
 
-  // these returned lists should be such that the first entry is the 'lowest command denominator' -
+  // these returned lists should be such that the first entry is the 'lowest common denominator' -
   // typically 32-bit.
   switch(GetABI(adbAbi))
   {
